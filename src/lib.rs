@@ -26,10 +26,12 @@ impl Config {
 }
 
 pub fn run(config: Config){
-    let scan = scan_range(config.addr, config.start_port, config.end_port);
+    scan_range(config.addr, config.start_port, config.end_port);
+    /*
     for s in scan {
         println!("{}: {}", s.socket_addr, s.result);
     }
+    */
 }
 
 pub fn parse_ports(ports_str: &str) -> Result<(u16, u16), &'static str> {
@@ -39,6 +41,10 @@ a u16.";
     v.sort();
     if v.len() > 2{
         return Err(err_msg)
+    }
+    if v.len() == 1 {
+        let port: u16 = v[0].trim().parse().expect(err_msg);
+        return Ok((port,port))
     }
     let start: u16 = v[0].trim().parse().expect(err_msg);
     let end: u16 = v[1].trim().parse().expect(err_msg);
@@ -53,6 +59,7 @@ pub fn scan_range(addr: std::net::Ipv4Addr, start: u16, end: u16) -> Vec <ScanRe
             socket_addr: addr,
             result: connect(addr)
         };
+        println!("{}: {}", this_result.socket_addr, this_result.result);
         results.push(this_result);
     }
     results
