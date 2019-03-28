@@ -1,0 +1,8 @@
+[package]
+name = "portscan"
+version = "0.1.0"
+authors = ["Martin Pugh <pugh@s3kr.it>"]
+edition = "2018"
+
+[dependencies]
+clap = ""
