@@ -1,4 +1,6 @@
+extern crate pnet;
 use std::net::{Shutdown,SocketAddr,TcpStream,IpAddr,Ipv4Addr};
+use std::thread;
 
 pub struct Config {
     pub addr: std::net::Ipv4Addr,
@@ -26,12 +28,12 @@ impl Config {
 }
 
 pub fn run(config: Config){
-    scan_range(config.addr, config.start_port, config.end_port);
-    /*
+    let scan = scan_range(config.addr, config.start_port, config.end_port);
     for s in scan {
-        println!("{}: {}", s.socket_addr, s.result);
+        if s.result == true {
+            println!("{}", s.socket_addr);
+        }
     }
-    */
 }
 
 pub fn parse_ports(ports_str: &str) -> Result<(u16, u16), &'static str> {
@@ -53,14 +55,19 @@ a u16.";
 
 pub fn scan_range(addr: std::net::Ipv4Addr, start: u16, end: u16) -> Vec <ScanResult> {
     let mut results = Vec::new();
+    let mut threads = Vec::new();
     for port in start..(end+1){
-        let addr = SocketAddr::new(IpAddr::V4(addr), port);
-        let this_result = ScanResult {
-            socket_addr: addr,
-            result: connect(addr)
-        };
-        println!("{}: {}", this_result.socket_addr, this_result.result);
-        results.push(this_result);
+        threads.push(thread::spawn(move || {
+            let addr = SocketAddr::new(IpAddr::V4(addr), port);
+            let this_result = ScanResult {
+                socket_addr: addr,
+                result: connect(addr)
+            };
+            this_result
+        }));
+    }
+    for t in threads{
+        results.push(t.join().unwrap());
     }
     results
 }
